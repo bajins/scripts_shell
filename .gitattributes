@@ -9,6 +9,7 @@
 *.psl text linguist-language=PowerShell working-tree-encoding=GB2312 eol=crlf
 *.vbs text linguist-language=Visual-Basic-Script working-tree-encoding=GB2312 eol=crlf
 *.sh text linguist-language=bash working-tree-encoding=UTF-8 eol=lf
+rcloned text linguist-language=bash working-tree-encoding=UTF-8 eol=lf
 
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
