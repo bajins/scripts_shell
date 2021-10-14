@@ -1,5 +1,5 @@
 <# ::
-@powershell -<%~f0 &goto:eof
+@powershell -WindowStyle Hidden -ExecutionPolicy Bypass -<%~f0 &goto:eof
 #>
 # 保存到bat文件中可以双击执行，从这里开始是Power Shell代码
 
