@@ -1,5 +1,5 @@
-' sIniDir Îª³õÊ¼»¯Ä¿Â¼
-' sFilter ÎªÎÄ¼şºó×º Ê¾Àı£º"*.*,*.txt"
+' sIniDir ä¸ºåˆå§‹åŒ–ç›®å½•
+' sFilter ä¸ºæ–‡ä»¶åç¼€ ç¤ºä¾‹ï¼š"*.*,*.txt"
 Function GetFileDlgEx(sIniDir, sFilter, sTitle)
     sIniDir = Replace(sIniDir, "\", "\\")
     ' Set regex = New RegExp
@@ -31,10 +31,10 @@ End Function
 Set WshShell = Wscript.CreateObject("Wscript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
-' »ñÈ¡µ±Ç°ÓÃ»§×ÀÃæ
-f = GetFileDlgEx(WshShell.SpecialFolders("Desktop"), "*.war", "Ñ¡ÔñWAR°ü")
+' è·å–å½“å‰ç”¨æˆ·æ¡Œé¢
+f = GetFileDlgEx(WshShell.SpecialFolders("Desktop"), "*.war", "é€‰æ‹©WARåŒ…")
 If f = "" Or IsNull(f) Then
-    MsgBox "ÇëÑ¡ÔñWAR°ü£¡", 48
+    MsgBox "è¯·é€‰æ‹©WARåŒ…ï¼", 48
     Wscript.Quit
 End If
 
@@ -44,50 +44,50 @@ fName = fObj.name
 oldFolder = Replace(fObj.path, ".war", "")
 
 If fso.folderExists(oldFolder) Then
-    MsgBox "ÎÄ¼ş¼Ğ" & oldFolder & "ÒÑ¾­´æÔÚ£¡", 48
+    MsgBox "æ–‡ä»¶å¤¹" & oldFolder & "å·²ç»å­˜åœ¨ï¼", 48
     Wscript.Quit
 End If
 
 unWar = oldFolder & "\" & fName
-' ´´½¨ÎÄ¼ş¼Ğ
+' åˆ›å»ºæ–‡ä»¶å¤¹
 fso.CreateFolder(oldFolder)
-' ¸´ÖÆÎÄ¼ş
+' å¤åˆ¶æ–‡ä»¶
 fso.CopyFile f, unWar, True
-' ÇĞ»»¹¤×÷Ä¿Â¼
+' åˆ‡æ¢å·¥ä½œç›®å½•
 WshShell.CurrentDirectory = oldFolder
-' ½âÑ¹WAR°ü
+' è§£å‹WARåŒ…
 resCode = WshShell.Run("jar -xvf " & unWar, 0, True)
 If resCode <> 0 Then
-    MsgBox "WAR°ü½âÑ¹´íÎó£¡", 48
+    MsgBox "WARåŒ…è§£å‹é”™è¯¯ï¼", 48
     Wscript.Quit
 End If
-' É¾³ıÎÄ¼ş
+' åˆ é™¤æ–‡ä»¶
 fso.DeleteFile(unWar)
 ' WshShell.CurrentDirectory = fso.GetFolder(".").Path
 WshShell.CurrentDirectory = fso.GetFile(Wscript.ScriptFullName).ParentFolder.Path
 
-' On Error Resume Next ' ²¶»ñÒì³£
+' On Error Resume Next ' æ•è·å¼‚å¸¸
 
-copyPath = oldFolder & "_copy" ' ¸´ÖÆºóµÄÂ·¾¶
+copyPath = oldFolder & "_copy" ' å¤åˆ¶åçš„è·¯å¾„
 
 ' If Err <> 0 Then
-    ' MsgBox "ÎÄ¼ş¼ĞÎ´ÕıÈ·Ñ¡Ôñ£¡" & Err.Description, 48
-    ' Err.clear ' ´íÎó±»ÊÖ¹¤´¦ÀíºóÒª¼ÇµÃÇå³ıerr¶ÔÏóµÄÄÚÈİ
+    ' MsgBox "æ–‡ä»¶å¤¹æœªæ­£ç¡®é€‰æ‹©ï¼" & Err.Description, 48
+    ' Err.clear ' é”™è¯¯è¢«æ‰‹å·¥å¤„ç†åè¦è®°å¾—æ¸…é™¤errå¯¹è±¡çš„å†…å®¹
     ' Wscript.Quit
 ' End If
-' On Error Goto 0 ' ¹Ø±Õ´íÎó²¶»ñ
+' On Error Goto 0 ' å…³é—­é”™è¯¯æ•è·
 
-' Êä³öÑ¡ÔñµÄÎÄ¼şÂ·¾¶
-' MsgBox "µ±Ç°Ñ¡ÔñµÄÎÄ¼ş£º" & chr(13) & f, 64
+' è¾“å‡ºé€‰æ‹©çš„æ–‡ä»¶è·¯å¾„
+' MsgBox "å½“å‰é€‰æ‹©çš„æ–‡ä»¶ï¼š" & chr(13) & f, 64
 
-' ´ò¿ª¶Ô»°¿ò
-Set oExec = WshShell.Exec("mshta javascript:""<HTA:APPLICATION SCROLL = 'No' MinimizeButton='No'/><span>ÌáÊ¾£º¿É´ÓSVNÈÕÖ¾ÖĞ²éÕÒµ½ÎÄ¼ş</span><textarea id='t' cols='60' rows='20' style='width:100%;height:100%'></textarea><script>document.title='Òª´ò°üµÄÎÄ¼ş';resizeTo(500, 450);document.body.onunload = function(){new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).Write(t.value);}</script>""")
+' æ‰“å¼€å¯¹è¯æ¡†
+Set oExec = WshShell.Exec("mshta javascript:""<HTA:APPLICATION SCROLL = 'No' MinimizeButton='No'/><span>æç¤ºï¼šå¯ä»SVNæ—¥å¿—ä¸­æŸ¥æ‰¾åˆ°æ–‡ä»¶</span><textarea id='t' cols='60' rows='20' style='width:100%;height:100%'></textarea><script>document.title='è¦æ‰“åŒ…çš„æ–‡ä»¶';resizeTo(500, 450);document.body.onunload = function(){new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).Write(t.value);}</script>""")
 
 arg = oExec.StdOut.ReadAll
-' arg = InputBox("¶à¸öÎÄ¼şÖ®¼äÒÔ¿Õ¸ñ·Ö¸î" & vbCrLf & vbCrLf & "ÌáÊ¾£º¿É´ÓSVNÈÕÖ¾ÖĞ²éÕÒµ½ÎÄ¼ş", "Òª´ò°üµÄÎÄ¼ş", "")
+' arg = InputBox("å¤šä¸ªæ–‡ä»¶ä¹‹é—´ä»¥ç©ºæ ¼åˆ†å‰²" & vbCrLf & vbCrLf & "æç¤ºï¼šå¯ä»SVNæ—¥å¿—ä¸­æŸ¥æ‰¾åˆ°æ–‡ä»¶", "è¦æ‰“åŒ…çš„æ–‡ä»¶", "")
 
 If arg = "" Then
-    MsgBox "ÇëÊäÈëÒª´ò°üµÄÎÄ¼ş£¡", 48
+    MsgBox "è¯·è¾“å…¥è¦æ‰“åŒ…çš„æ–‡ä»¶ï¼", 48
     Wscript.Quit
 End If
 
@@ -103,15 +103,15 @@ End With
 resCode = WshShell.Run("robocopy /ndl /njh /njs /s """ & oldFolder & """ """ & copyPath & """ " & s, 0, True)
 
 If resCode > 8 Then
-    MsgBox "ÔöÁ¿ÎÄ¼ş¸´ÖÆ´íÎó£¡", 48
+    MsgBox "å¢é‡æ–‡ä»¶å¤åˆ¶é”™è¯¯ï¼", 48
     Wscript.Quit
 End If
-' É¾³ıÎÄ¼ş
+' åˆ é™¤æ–‡ä»¶
 fso.DeleteFolder(oldFolder)
 
 If fso.folderExists(copyPath) Then
-    MsgBox "Ö´ĞĞ³É¹¦£¡", 64
+    MsgBox "æ‰§è¡ŒæˆåŠŸï¼", 64
     ' WshShell.Explore(copyPath)
 Else
-    MsgBox "Ö´ĞĞÊ§°Ü£¡", 48
+    MsgBox "æ‰§è¡Œå¤±è´¥ï¼", 48
 End If
