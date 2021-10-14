@@ -99,9 +99,10 @@ With New RegExp
     s = .Replace(s, " ")
 End With
 
+' https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/robocopy
 resCode = WshShell.Run("robocopy /ndl /njh /njs /s """ & oldFolder & """ """ & copyPath & """ " & s, 0, True)
 
-If resCode <> 0 And resCode <> 1 Then
+If resCode > 8 Then
     MsgBox "增量文件复制错误！", 48
     Wscript.Quit
 End If
