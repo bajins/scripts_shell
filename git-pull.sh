@@ -22,6 +22,8 @@ function readdir() {
         if [ -d ".git" ]; then
             # 列出git远端仓库路径
             git remote -v
+            # 针对某个域名使用代理，最优方式
+            #git config remote.origin.proxy "socks5://127.0.0.1:10808"
             echo 开始更新： $file
             git pull
             echo -----------------------------------------------------------
