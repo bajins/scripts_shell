@@ -1,5 +1,5 @@
-' sIniDir ä¸ºåˆå§‹åŒ–ç›®å½•
-' sFilter ä¸ºæ–‡ä»¶åç¼€ ç¤ºä¾‹ï¼š"*.*,*.txt"
+' sIniDir Îª³õÊ¼»¯Ä¿Â¼
+' sFilter ÎªÎÄ¼şºó×º Ê¾Àı£º"*.*,*.txt"
 Function GetFileDlgEx(sIniDir, sFilter, sTitle)
     sIniDir = Replace(sIniDir, "\", "\\")
     ' Set regex = New RegExp
@@ -28,13 +28,30 @@ Function GetFileDlgEx(sIniDir, sFilter, sTitle)
     GetFileDlgEx = oDlg.StdOut.ReadAll 
 End Function
 
+Function LoadingDialog(envType)
+    'ÔÚHTAÖĞ¶¯Ì¬´´½¨½Å±¾¼ÓÔØ±äÁ¿ jerryHtml_env µÄÄÚÈİ£¨ĞèÒªÑ¹Ëõ´úÂëÎªÒ»ĞĞ£©
+    myHtml="mshta javascript:""<HTA:Application scroll='no' minimizeButton='no' maximizeButton='no' contextMenu='No' showInTaskbar= 'yes' sysMenu= 'no' selection='no'><html><body><div class=loading id=content style='text-align:center;margin: 20% auto'>ÕıÔÚÖ´ĞĞ½âÑ¹£¡</div></body><script>resizeTo(300, 200);document.title = ' ';var wsh=new ActiveXObject('WScript.Shell');var script = document.createElement('SCRIPT');script.text=wsh.Environment('"&envType&"').Item('script');document.body.appendChild(script);</script></html>"""
+    Set ws = CreateObject("WScript.Shell")
+    '´´½¨ÓÃ»§±äÁ¿
+    Set env = ws.environment(envType)
+    env("stat") = 1
+    Set oExec = ws.Exec(myHtml)
+    env("script") = "var wsh = new ActiveXObject('WScript.Shell');window.setInterval(function () {var text = wsh.Environment('user').Item('stat');if (text == 0) {window.close();}}, 50);"
+    LoadingDialog = oExec.ProcessID
+End Function
+
 Set WshShell = Wscript.CreateObject("Wscript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
-' è·å–å½“å‰ç”¨æˆ·æ¡Œé¢
-f = GetFileDlgEx(WshShell.SpecialFolders("Desktop"), "*.war", "é€‰æ‹©WARåŒ…")
-If f = "" Or IsNull(f) Then
-    MsgBox "è¯·é€‰æ‹©WARåŒ…ï¼", 48
+If wscript.arguments.count=0 Then
+    ' »ñÈ¡µ±Ç°ÓÃ»§×ÀÃæ
+    f = GetFileDlgEx(WshShell.SpecialFolders("Desktop"), "*.war", "Ñ¡ÔñWAR°ü")
+Else
+    f = wscript.arguments(0)
+End If
+
+If f = "" Or IsNull(f) Or Not InStr(1, f, ".war") > 1 Then
+    MsgBox "ÇëÑ¡ÔñWAR°ü£¡", 48
     Wscript.Quit
 End If
 
@@ -44,50 +61,56 @@ fName = fObj.name
 oldFolder = Replace(fObj.path, ".war", "")
 
 If fso.folderExists(oldFolder) Then
-    MsgBox "æ–‡ä»¶å¤¹" & oldFolder & "å·²ç»å­˜åœ¨ï¼", 48
+    MsgBox "ÎÄ¼ş¼Ğ" & oldFolder & "ÒÑ¾­´æÔÚ£¡", 48
     Wscript.Quit
 End If
 
 unWar = oldFolder & "\" & fName
-' åˆ›å»ºæ–‡ä»¶å¤¹
+' ´´½¨ÎÄ¼ş¼Ğ
 fso.CreateFolder(oldFolder)
-' å¤åˆ¶æ–‡ä»¶
+' ¸´ÖÆÎÄ¼ş
 fso.CopyFile f, unWar, True
-' åˆ‡æ¢å·¥ä½œç›®å½•
+' ÇĞ»»¹¤×÷Ä¿Â¼
 WshShell.CurrentDirectory = oldFolder
-' è§£å‹WARåŒ…
+envType = "user"
+LoadingDialog(envType)
+'´´½¨ÓÃ»§±äÁ¿
+set env = WshShell.environment(envType)
+' ½âÑ¹WAR°ü
 resCode = WshShell.Run("jar -xvf " & unWar, 0, True)
 If resCode <> 0 Then
-    MsgBox "WARåŒ…è§£å‹é”™è¯¯ï¼", 48
+    env("stat") = 0
+    MsgBox "WAR°ü½âÑ¹´íÎó£¡", 48
     Wscript.Quit
 End If
-' åˆ é™¤æ–‡ä»¶
+env("stat") = 0
+' É¾³ıÎÄ¼ş
 fso.DeleteFile(unWar)
 ' WshShell.CurrentDirectory = fso.GetFolder(".").Path
 WshShell.CurrentDirectory = fso.GetFile(Wscript.ScriptFullName).ParentFolder.Path
 
-' On Error Resume Next ' æ•è·å¼‚å¸¸
+' On Error Resume Next ' ²¶»ñÒì³£
 
-copyPath = oldFolder & "_copy" ' å¤åˆ¶åçš„è·¯å¾„
+copyPath = oldFolder & "_copy" ' ¸´ÖÆºóµÄÂ·¾¶
 
 ' If Err <> 0 Then
-    ' MsgBox "æ–‡ä»¶å¤¹æœªæ­£ç¡®é€‰æ‹©ï¼" & Err.Description, 48
-    ' Err.clear ' é”™è¯¯è¢«æ‰‹å·¥å¤„ç†åè¦è®°å¾—æ¸…é™¤errå¯¹è±¡çš„å†…å®¹
+    ' MsgBox "ÎÄ¼ş¼ĞÎ´ÕıÈ·Ñ¡Ôñ£¡" & Err.Description, 48
+    ' Err.clear ' ´íÎó±»ÊÖ¹¤´¦ÀíºóÒª¼ÇµÃÇå³ıerr¶ÔÏóµÄÄÚÈİ
     ' Wscript.Quit
 ' End If
-' On Error Goto 0 ' å…³é—­é”™è¯¯æ•è·
+' On Error Goto 0 ' ¹Ø±Õ´íÎó²¶»ñ
 
-' è¾“å‡ºé€‰æ‹©çš„æ–‡ä»¶è·¯å¾„
-' MsgBox "å½“å‰é€‰æ‹©çš„æ–‡ä»¶ï¼š" & chr(13) & f, 64
+' Êä³öÑ¡ÔñµÄÎÄ¼şÂ·¾¶
+' MsgBox "µ±Ç°Ñ¡ÔñµÄÎÄ¼ş£º" & chr(13) & f, 64
 
-' æ‰“å¼€å¯¹è¯æ¡†
-Set oExec = WshShell.Exec("mshta javascript:""<HTA:APPLICATION SCROLL = 'No' MinimizeButton='No'/><span>æç¤ºï¼šå¯ä»SVNæ—¥å¿—ä¸­æŸ¥æ‰¾åˆ°æ–‡ä»¶</span><textarea id='t' cols='60' rows='20' style='width:100%;height:100%'></textarea><script>document.title='è¦æ‰“åŒ…çš„æ–‡ä»¶';resizeTo(500, 450);document.body.onunload = function(){new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).Write(t.value);}</script>""")
+' ´ò¿ª¶Ô»°¿ò
+Set oExec = WshShell.Exec("mshta javascript:""<HTA:APPLICATION SCROLL = 'No' MinimizeButton='No'/><span>ÌáÊ¾£º¿É´ÓSVNÈÕÖ¾ÖĞ²éÕÒµ½ÎÄ¼ş</span><textarea id='t' cols='60' rows='20' style='width:100%;height:100%'></textarea><script>document.title='Òª´ò°üµÄÎÄ¼ş';resizeTo(500, 450);document.body.onunload = function(){new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).Write(t.value);}</script>""")
 
 arg = oExec.StdOut.ReadAll
-' arg = InputBox("å¤šä¸ªæ–‡ä»¶ä¹‹é—´ä»¥ç©ºæ ¼åˆ†å‰²" & vbCrLf & vbCrLf & "æç¤ºï¼šå¯ä»SVNæ—¥å¿—ä¸­æŸ¥æ‰¾åˆ°æ–‡ä»¶", "è¦æ‰“åŒ…çš„æ–‡ä»¶", "")
+' arg = InputBox("¶à¸öÎÄ¼şÖ®¼äÒÔ¿Õ¸ñ·Ö¸î" & vbCrLf & vbCrLf & "ÌáÊ¾£º¿É´ÓSVNÈÕÖ¾ÖĞ²éÕÒµ½ÎÄ¼ş", "Òª´ò°üµÄÎÄ¼ş", "")
 
 If arg = "" Then
-    MsgBox "è¯·è¾“å…¥è¦æ‰“åŒ…çš„æ–‡ä»¶ï¼", 48
+    MsgBox "ÇëÊäÈëÒª´ò°üµÄÎÄ¼ş£¡", 48
     Wscript.Quit
 End If
 
@@ -103,15 +126,15 @@ End With
 resCode = WshShell.Run("robocopy /ndl /njh /njs /s """ & oldFolder & """ """ & copyPath & """ " & s, 0, True)
 
 If resCode > 8 Then
-    MsgBox "å¢é‡æ–‡ä»¶å¤åˆ¶é”™è¯¯ï¼", 48
+    MsgBox "ÔöÁ¿ÎÄ¼ş¸´ÖÆ´íÎó£¡", 48
     Wscript.Quit
 End If
-' åˆ é™¤æ–‡ä»¶
+' É¾³ıÎÄ¼ş
 fso.DeleteFolder(oldFolder)
 
 If fso.folderExists(copyPath) Then
-    MsgBox "æ‰§è¡ŒæˆåŠŸï¼", 64
+    MsgBox "Ö´ĞĞ³É¹¦£¡", 64
     ' WshShell.Explore(copyPath)
 Else
-    MsgBox "æ‰§è¡Œå¤±è´¥ï¼", 48
+    MsgBox "Ö´ĞĞÊ§°Ü£¡", 48
 End If
