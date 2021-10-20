@@ -1,124 +1,58 @@
-Set ws = CreateObject("WScript.Shell")
-'åˆ›å»ºç”¨æˆ·å˜é‡
-set oshell=createobject("wscript.shell")
-set env=oshell.environment("user")
- 
-'åœ¨HTAä¸­åŠ¨æ€åˆ›å»ºè„šæœ¬åŠ è½½å˜é‡ jerryHtml_env çš„å†…å®¹ï¼ˆéœ€è¦å‹ç¼©ä»£ç ä¸ºä¸€è¡Œï¼‰
-myHtml = "mshta javascript:""<HTA:Application scroll='no'>
-<html>
+Function CreateProgressBar(envType)
+    'ÔÚHTAÖĞ¶¯Ì¬´´½¨½Å±¾¼ÓÔØ jerryHtml_env µÄÄÚÈİ
+    myHtml = "mshta javascript:""<HTA:Application scroll='no'><html><body></body><script>var wsh=new ActiveXObject('WScript.Shell');var myscript = document.createElement('SCRIPT');myscript.text=wsh.Environment('"&envType&"').Item('jerryHtml_env');document.body.appendChild(myscript);</script><SCRIPT Language='VBScript'>window.moveTo screen.availWidth/4, screen.availHeight/3</SCRIPT></html>"""
+    Set WshShell = CreateObject("WScript.Shell")
+    '´´½¨ÓÃ»§±äÁ¿
+    Set env = WshShell.environment(envType)
+    env("jerryCount_env") = 0
+    Set oExec = WshShell.Exec(myHtml)
+    
+    'jerryHtml_env£º HTAµÄÖ÷Ìå£¬Í¨¹ıjs¶¯Ì¬´´½¨½ø¶ÈÌõĞ´Èë <body>
+    env("jerryHtml_env") ="var mydiv = document.createElement('div');mydiv.innerHTML=""<body>" _
+    & "<style type='text/css'>body{text-align:center}.process-bar{width:80%;top:20%;display:inline-block;zoom:2}.pb-wrapper{border:1px solid gray;position:relative;background:#cfd0d2;border-style:solid none}.pb-container{text-align:left;border:1px solid gray;height:12px;position:relative;left:-1px;margin-right:-2px;font:1px/0 arial;border-style:none solid;padding:1px}.pb-highlight{position:absolute;left:0;top:0;width:100%;opacity:.6;filter:alpha(opacity=60);height:6px;background:#FFF;font-size:1px;line-height:0;z-index:1}.pb-text{width:100%;position:absolute;left:46%;top:0;color:#000;font:10px/12px arial}.pb-value{height:100%;width:10%;background:#19d73d}.skin-green .pb-wrapper{border-color:#628c2d #666 #666}.skin-green .pb-container{border-color:#666 #666 #666 #628c2d}</style>" _
+    & "o(¡É_¡É)o µ¼±íÖĞ¡£¡£¡£<div class='process-bar skin-green pb-wrapper'><div class='pb-highlight'></div><div class='pb-container'><div class='pb-text' id='ptx'></div><div class='pb-value' id='pID'></div></div></div>" _
+    & "</body>"";" _
+    & "window.resizeTo(screen.availWidth/2, screen.availHeight/4);document.title = '²ß»®µ¼±í£¬ÏĞÈË»Ø±Ü£¡';document.body.appendChild(mydiv);var wsh=new ActiveXObject('WScript.Shell');window.setInterval(function(){var str=wsh.Environment('"&envType&"').Item('jerryCount_env');if(str<0)window.close();document.getElementById('pID').style.width=str+'%';document.getElementById('ptx').innerHTML=str+'%';},50);"
+    CreateProgressBar = oExec.ProcessID
+End Function
 
-<body></body>
-<script>
-    var wsh = new ActiveXObject('WScript.Shell');
-    var myscript = document.createElement('SCRIPT');
-    myscript.text = wsh.Environment('user').Item('jerryHtml_env');
-    document.body.appendChild(myscript);
-</script>
-<SCRIPT Language='VBScript'>
-    window.moveTo screen.availWidth / 4, screen.availHeight / 3
-</SCRIPT>
 
-</html>"""
-env("jerryCount_env") = 1
-Set oExec = ws.Exec(myHtml)
- 
-'jerryHtml_envï¼š HTAçš„ä¸»ä½“ï¼ˆéœ€è¦å‹ç¼©ä»£ç ä¸ºä¸€è¡Œï¼‰ï¼Œé€šè¿‡jsåŠ¨æ€åˆ›å»ºè¿›åº¦æ¡å†™å…¥ <body>
-env("jerryHtml_env") ="var mydiv = document.createElement('div');
-mydiv.innerHTML = `<body>
-<style type='text/css'>
-    body {
-        text-align: center
-    }
+CreateProgressBar("volatile")
 
-    .process-bar {
-        width: 80%;
-        top: 20%;
-        display: inline-block;
-        zoom: 2
-    }
-
-    .pb-wrapper {
-        border: 1px solid gray;
-        position: relative;
-        background: #cfd0d2;
-        border-style: solid none
-    }
-
-    .pb-container {
-        text-align: left;
-        border: 1px solid gray;
-        height: 12px;
-        position: relative;
-        left: -1px;
-        margin-right: -2px;
-        font: 1px/0 arial;
-        border-style: none solid;
-        padding: 1px
-    }
-
-    .pb-highlight {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        opacity: .6;
-        filter: alpha(opacity=60);
-        height: 6px;
-        background: #FFF;
-        font-size: 1px;
-        line-height: 0;
-        z-index: 1
-    }
-
-    .pb-text {
-        width: 100%;
-        position: absolute;
-        left: 46%;
-        top: 0;
-        color: #000;
-        font: 10px/12px arial
-    }
-
-    .pb-value {
-        height: 100%;
-        width: 10%;
-        background: #19d73d
-    }
-
-    .skin-green .pb-wrapper {
-        border-color: #628c2d #666 #666
-    }
-
-    .skin-green .pb-container {
-        border-color: #666 #666 #666 #628c2d
-    }
-</style>
-o(âˆ©_âˆ©)o å¯¼è¡¨ä¸­ã€‚ã€‚ã€‚<div class='process-bar skin-green pb-wrapper'>
-    <div class='pb-highlight'></div>
-    <div class='pb-container'>
-        <div class='pb-text' id='ptx'></div>
-        <div class='pb-value' id='pID'></div>
-    </div>
-</div>
-</body>`;
-window.resizeTo(screen.availWidth / 2, screen.availHeight / 4);
-document.title = 'ç­–åˆ’å¯¼è¡¨ï¼Œé—²äººå›é¿ï¼';
-document.body.appendChild(mydiv);
-var wsh = new ActiveXObject('WScript.Shell');
-window.setInterval(function () {
-    var str = wsh.Environment('user').Item('jerryCount_env');
-    if (str == '100%å®Œæˆ') window.close();
-    document.getElementById('pID').style.width = str;
-    document.getElementById('ptx').innerHTML = str;
-}, 50);"
-'jerryCount_envï¼šVBSé‡Œçš„è¿›åº¦å‚æ•°ã€‚HTAä¸­ window.setInterval()æ¯åŠç§’è¯»ä¸€æ¬¡åˆ·æ–°è¿›åº¦æ¡ã€‚
-'å¾ªç¯ï¼Œæµ‹è¯•ç”¨
+Set env = CreateObject("WScript.Shell").environment("volatile")
 For i = 0 To 100 Step 10
-	WScript.Sleep 50
-	env("jerryCount_env") = i&"%"
-Next 
-'è‡ªå·²æ¥æ§åˆ¶HTAçš„å…³é—­: if(str=='100%å®Œæˆ')window.close()ã€‚è¦æ³¨æ„çš„æ˜¯ï¼Œå…ˆåˆ¤æ–­æ˜¯å¦æ»¡è¶³ï¼Œå†è®¾ç½®è¿›åº¦çš„å®½åº¦ã€‚å› ä¸º width='100%å®Œæˆ'å¯ä¸è¡Œ
-env("jerryCount_env") = "100%å®Œæˆ"
- 
-'æ˜¾ç¤º HTAçš„è¿›ç¨‹IDã€‚åˆ°100%å¯ä»¥æ€è¿›ç¨‹ã€‚ä¹Ÿå¯ä»¥åˆ°HTAä¸­å»åˆ¤æ–­è‡ªè¡Œå…³é—­ã€‚
-MsgBox "HTAçš„è¿›ç¨‹IDï¼š" & oExec.ProcessID & chr(13)&"VBSä¸­å¯ä»¥è¿›è¡Œåˆ¤æ–­ï¼Œå¦‚æœè¿›åº¦æ¡çª—å£è¢«å…³é—­ï¼Œåˆ™ç»“æŸVBSï¼",,"ç­–åˆ’å¯¼è¡¨ï¼Œé—²äººå›é¿ï¼"
+    WScript.Sleep 500
+    env("jerryCount_env") = i
+Next
+
+WScript.Sleep 500
+env("jerryCount_env") = -1
+
+Function LoadingDialog(envType)
+    'ÔÚHTAÖĞ¶¯Ì¬´´½¨½Å±¾¼ÓÔØ±äÁ¿ jerryHtml_env µÄÄÚÈİ£¨ĞèÒªÑ¹Ëõ´úÂëÎªÒ»ĞĞ£©
+    myHtml="mshta javascript:""<HTA:Application scroll='no' minimizeButton='no' maximizeButton='no' contextMenu='No' showInTaskbar= 'yes' sysMenu= 'no' selection='no'><html><body><div class=loading id=content style='text-align:center;margin: 20% auto'>ÕıÔÚÖ´ĞĞ½âÑ¹£¡</div></body><script>resizeTo(300, 200);document.title = ' ';var wsh=new ActiveXObject('WScript.Shell');var script = document.createElement('SCRIPT');script.text=wsh.Environment('"&envType&"').Item('script');document.body.appendChild(script);</script></html>"""
+    Set ws = CreateObject("WScript.Shell")
+    '´´½¨ÓÃ»§±äÁ¿
+    Set env = ws.environment(envType)
+    env("stat") = 1
+    Set oExec = ws.Exec(myHtml)
+    env("script") = "var wsh = new ActiveXObject('WScript.Shell');window.setInterval(function () {var text = wsh.Environment('user').Item('stat');if (text == 0) {window.close();}}, 50);"
+    LoadingDialog = oExec.ProcessID
+End Function
+
+envType = "user"
+LoadingDialog(envType)
+'´´½¨ÓÃ»§±äÁ¿
+set oshell = createobject("wscript.shell")
+set env = oshell.environment(envType)
+
+For i = 0 To 100 Step 10
+    WScript.Sleep 500
+    if i=50 Then
+        env("stat") = 0
+    end if
+Next
+
+for each fname in wscript.arguments
+    wscript.echo fname
+next
