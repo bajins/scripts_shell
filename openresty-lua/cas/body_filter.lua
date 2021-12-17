@@ -28,13 +28,29 @@ if eof then
     if whole
         -- 判断响应Host是否为客户端访问Host
         and not string.match(whole, ngx.var.http_host)
+        -- 内网应用及IP，需在server或location中设置以下变量
+        -- set $hosts '{"cas":"172.16.0.91:28802","ims-bi":"172.16.0.91:28803"}';
+        and ngx.var.hosts and ngx.var.hosts ~= nil
     then
-        -- ngx.log(ngx.ERR, "body_filter_by_lua::::响应内容：》》》\n", whole, "\n《《《")
-        -- 替换外网IP，需在server或location中设置以下两个变量
-        -- set $outerIP "100%.100%.100%.100"; # 外网IP
-        -- set $insideIP  "172%.16%.0%.91"; # 内网IP
-        whole = string.gsub(whole, ngx.var.insideIP, ngx.var.outerIP)
-        -- 重新赋值响应数据，以修改后的内容作为最终响应
+        local hosts = cjson.decode(ngx.var.hosts)
+        local host = ""
+        for k, v in pairs(hosts) do
+            -- ngx.log(ngx.ERR,"\n", k, "===",v ,"\n")
+            if host == "" then
+                host = v
+            else
+                host = host.."|"..v
+            end
+        end
+        if host ~= "" then
+            -- ngx.log(ngx.ERR,"body_filter_by_lua::::响应内容：》》》\n", whole, "\n《《《")
+            -- 替换响应头中的外网IP   ngx.var.http_host
+            local newstr, n, err = ngx.re.gsub(whole, host, ngx.var.http_host, "i")
+            if newstr then
+                -- 替换外网IP，重新赋值响应数据，以修改后的内容作为最终响应
+                whole = newstr
+            end
+        end
     end
     ngx.arg[1] = whole
 end
