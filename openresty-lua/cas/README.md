@@ -99,7 +99,7 @@ local uri_args = ngx.req.get_uri_args()
 -- ngx.log(ngx.ERR, "header_filter::::resp_headers响应头：》》》\n", cjson.encode(resp_headers), "\n《《《")
 
 -- 替换请求参数，需在server或location中设置以下变量
--- set $inHost "172%.16%.0%.91"; # 内网IP
+-- set $inHost "172.16.0.91"; # 内网IP
 if uri_args["service"] and ngx.var.inHost and ngx.var.inHost ~= nil then
     -- 替换外网IP
     local newstr, n, err = ngx.re.gsub(uri_args["service"], ngx.var.http_host, ngx.var.inHost, "i")
@@ -140,7 +140,7 @@ ngx.header.content_length = nil -- body_filter_by_lua*替换内容后需要置�
 -- ngx.log(ngx.ERR, "header_filter_by_lua::::resp_headers响应头：》》》\n", cjson.encode(resp_headers), "\n《《《")
 
 -- 替换返回响应头，需在server或location中设置以下变量
--- set $inHost "172%.16%.0%.91"; # 内网IP
+-- set $inHost "172.16.0.91"; # 内网IP
 if ngx.header.location ~= nil
     -- 判断响应Host是否为客户端访问Host
     and not string.match(ngx.header.location, ngx.var.http_host)
@@ -217,7 +217,7 @@ if eof then
     then
         -- ngx.log(ngx.ERR,"body_filter_by_lua::::响应内容：》》》\n", whole, "\n《《《")
         -- 替换外网IP，需在server或location中设置以下变量
-        -- set $inHost "172%.16%.0%.91"; # 内网IP
+        -- set $inHost "172.16.0.91"; # 内网IP
         whole = string.gsub(whole, ngx.var.inHost, ngx.var.http_host)
         -- 重新赋值响应数据，以修改后的内容作为最终响应
     end
