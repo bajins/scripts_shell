@@ -9,7 +9,7 @@ ngx.header.content_length = nil -- body_filter_by_lua*替换内容后需要置�
 -- ngx.log(ngx.ERR, "header_filter_by_lua::::resp_headers响应头：》》》\n", cjson.encode(resp_headers), "\n《《《")
 
 -- 替换返回响应头，需在server或location中设置以下变量
--- set $inHost "172%.16%.0%.91"; # 内网IP
+-- set $inHost "172.16.0.91"; # 内网IP
 if ngx.header.location ~= nil
     -- 判断响应Host是否为客户端访问Host
     and not string.match(ngx.header.location, ngx.var.host)
@@ -17,7 +17,7 @@ if ngx.header.location ~= nil
 then
     -- 替换响应头中的外网IP
     local newstr, n, err = ngx.re.gsub(resp_headers.location, ngx.var.inHost, ngx.var.host, "i")
-    -- ngx.log(ngx.ERR, "\n新字符: ", newstr,"\n老字符: ", resp_headers.location,"\n", ngx.var.host,"\n")
+    -- ngx.log(ngx.ERR, "\n新字符: ", newstr, "\n老字符: ", resp_headers.location,"\n", ngx.var.host,"\n")
     if newstr then
          ngx.header['location'] = newstr
     else
@@ -33,7 +33,7 @@ end
 
 if resp_headers.refresh and ngx.var.inHost and ngx.var.inHost ~= nil then
     local newstr, n, err = ngx.re.gsub(resp_headers.refresh, ngx.var.inHost, ngx.var.host, "i")
-    -- ngx.log(ngx.ERR, "\n新字符: ", newstr,"\n老字符: ", resp_headers.refresh,"\n", ngx.var.host,"\n")
+    -- ngx.log(ngx.ERR, "\n新字符: ", newstr, "\n老字符: ", resp_headers.refresh,"\n", ngx.var.host,"\n")
     if newstr then
          ngx.header['refresh'] = newstr
     else

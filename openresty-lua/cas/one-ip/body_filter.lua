@@ -32,9 +32,12 @@ if eof then
     then
         -- ngx.log(ngx.ERR,"body_filter_by_lua::::响应内容：》》》\n", whole, "\n《《《")
         -- 替换外网IP，需在server或location中设置以下变量
-        -- set $inHost "172%.16%.0%.91"; # 内网IP
-        whole = string.gsub(whole, ngx.var.inHost, ngx.var.host)
-        -- 重新赋值响应数据，以修改后的内容作为最终响应
+        -- set $inHost "172.16.0.91"; # 内网IP
+        local newstr, n, err = ngx.re.gsub(whole, ngx.var.inHost, ngx.var.host, "i")
+        if newstr then
+            -- 替换外网IP，重新赋值响应数据，以修改后的内容作为最终响应
+            whole = newstr
+        end
     end
     ngx.arg[1] = whole
 end
