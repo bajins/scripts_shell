@@ -27,13 +27,13 @@ if eof then
     -- 内容有指定IP
     if whole
         -- 判断响应Host是否为客户端访问Host
-        and not string.match(whole, ngx.var.http_host)
+        and not string.match(whole, ngx.var.host)
         and ngx.var.inHost and ngx.var.inHost ~= nil
     then
         -- ngx.log(ngx.ERR,"body_filter_by_lua::::响应内容：》》》\n", whole, "\n《《《")
         -- 替换外网IP，需在server或location中设置以下变量
         -- set $inHost "172%.16%.0%.91"; # 内网IP
-        whole = string.gsub(whole, ngx.var.inHost, ngx.var.http_host)
+        whole = string.gsub(whole, ngx.var.inHost, ngx.var.host)
         -- 重新赋值响应数据，以修改后的内容作为最终响应
     end
     ngx.arg[1] = whole

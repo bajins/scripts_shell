@@ -13,7 +13,7 @@ local uri_args = ngx.req.get_uri_args()
 -- set $inHost "172%.16%.0%.91"; # 内网IP
 if uri_args["service"] and ngx.var.inHost and ngx.var.inHost ~= nil then
     -- 替换外网IP
-    local newstr, n, err = ngx.re.gsub(uri_args["service"], ngx.var.http_host, ngx.var.inHost, "i")
+    local newstr, n, err = ngx.re.gsub(uri_args["service"], ngx.var.host, ngx.var.inHost, "i")
     if newstr then
         -- 替换外网IP ngx.var.http_host
          uri_args["service"] = newstr
@@ -29,8 +29,8 @@ if uri_args["service"] and ngx.var.inHost and ngx.var.inHost ~= nil then
     ngx.req.set_uri_args(uri_args)
 end
 
-if string.match(req_headers.host, ngx.var.outerIP) and ngx.var.inHost and ngx.var.inHost ~= nil then
-    -- ngx.req.set_header("Host", string.gsub(req_headers.host, ngx.var.http_host, ngx.var.inHost))
+if string.match(req_headers.host, ngx.var.host) and ngx.var.inHost and ngx.var.inHost ~= nil then
+    -- ngx.req.set_header("Host", string.gsub(req_headers.host, ngx.var.host, ngx.var.inHost))
     -- ngx.req.set_header("X-Real-IP", "172.16.0.91")
     -- ngx.var.remote_addr = "172.16.0.91"
 end
