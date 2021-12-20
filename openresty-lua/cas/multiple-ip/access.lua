@@ -1,8 +1,8 @@
 -- access_by_lua_file: 进
 local cjson = require("cjson");
 
-local req_headers = ngx.req.get_headers() -- 请求头
-local resp_headers = ngx.resp.get_headers() -- 响应头
+-- local req_headers = ngx.req.get_headers() -- 请求头
+-- local resp_headers = ngx.resp.get_headers() -- 响应头
 
 local uri_args = ngx.req.get_uri_args()
 

@@ -3,8 +3,8 @@
 local chunk, eof = ngx.arg[1], ngx.arg[2]
 local cjson = require("cjson");
 
-local req_headers = ngx.req.get_headers() -- 请求头
-local resp_headers = ngx.resp.get_headers() -- 响应头
+-- local req_headers = ngx.req.get_headers() -- 请求头
+-- local resp_headers = ngx.resp.get_headers() -- 响应头
 
 -- 定义全局变量，收集全部响应
 if ngx.ctx.buffered == nil then
@@ -24,12 +24,11 @@ if eof then
     local whole = table.concat(ngx.ctx.buffered)
     ngx.ctx.buffered = nil
     
-    -- 内容有指定IP
+    -- 内容有指定IP，需在server或location中设置以下变量
+    -- set $hosts '{"cas":"172.16.0.91:28802","ims-bi":"172.16.0.91:28803"}';
     if whole
         -- 判断响应Host是否为客户端访问Host
         and not string.match(whole, ngx.var.http_host)
-        -- 内网应用及IP，需在server或location中设置以下变量
-        -- set $hosts '{"cas":"172.16.0.91:28802","ims-bi":"172.16.0.91:28803"}';
         and ngx.var.hosts and ngx.var.hosts ~= nil
     then
         local hosts = cjson.decode(ngx.var.hosts)
