@@ -98,7 +98,11 @@ With New RegExp
     .Pattern = "-|/|\s|:"
     tn = .Replace(tn, "")
 End With
+<<<<<<< HEAD
+copyPath = oldFolder & "_" & tn & "_" & WshShell.ExpandEnvironmentStrings("%USERNAME%") ' 复制后的路径
+=======
 copyPath = oldFolder & "_" & tn ' 复制后的路径
+>>>>>>> 2c7ef9b1c3aad978652e06d030f046447d7df931
 
 ' If Err <> 0 Then
     ' MsgBox "文件夹未正确选择！" & Err.Description, 48
