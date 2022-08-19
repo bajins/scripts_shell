@@ -143,9 +143,15 @@ End If
 ' 删除文件
 fso.DeleteFolder(oldFolder)
 
-If fso.folderExists(copyPath) Then
-    MsgBox "执行成功！", 64
-    ' WshShell.Explore(copyPath)
-Else
-    MsgBox "执行失败！", 48
+If Not fso.folderExists(copyPath) Then
+    MsgBox "复制文件失败！", 48
 End If
+
+WshShell.Run "powershell -NonInteractive -c ""Compress-Archive -Path """""""& copyPath &""""""" -DestinationPath """"""" & copyPath & ".zip" &""""""" """, 1, True
+
+' If fso.folderExists(copyPath) Then
+    ' MsgBox "执行成功！", 64
+    ' WshShell.Explore(copyPath)
+' Else
+    ' MsgBox "执行失败！", 48
+' End If
