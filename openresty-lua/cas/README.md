@@ -3,19 +3,19 @@
 
 ## 应用背景
 
-> 只部署一套V5系统，实现通过内部网络可以直接访问，也可以通过外部IP进行访问
+> 只部署一套系统，实现通过内部网络可以直接访问，也可以通过外部IP进行访问
 
 
 
 ## 实现思路
 
-> 后端返回的地址全部填NGINX的内网IP:port（端口内外网一致），当为外网IP请求进来时，把URL替换成NGINX的内网IP，返回时替换请求头中的内网IP为外网IP
+> 后端返回的地址全部填NGINX的内网`host`（`IP:port`）
+>
+> 当为外网host请求时，把URL中的host替换成NGINX的内网host，返回时替换请求头中的host为外网host
 
 
 
 ## 实现步骤
-
-> 此步骤是在已经通过`Deploy`项目部署的无端口访问方式基础上操作的！
 
 
 ### 系统部署
@@ -71,7 +71,7 @@ export PATH
 
 ```bash
 # 编辑配置文件
-vim /usr/local/openresty/nginx/conf
+vim /usr/local/openresty/nginx/conf/nginx.conf
 # 在server块中添加Lua脚本执行时需要的变量
 set $inHost "172.16.0.91"; # 内网IP
 ```
@@ -81,7 +81,7 @@ set $inHost "172.16.0.91"; # 内网IP
 ### 配置Lua脚本
 
 
-> lua脚本总共有三个，需要分别把以下代码复制保存为：`access.lua`、`body_filter.lua`、`header_filter.lua`等文件到`/usr/local/openresty`目录；
+**分别把以下代码复制并保存文件到`/usr/local/openresty/lua`目录**
 
 
 **access.lua**
@@ -95,14 +95,18 @@ set $inHost "172.16.0.91"; # 内网IP
 
 local uri_args = ngx.req.get_uri_args()
 
--- ngx.log(ngx.ERR, "header_filter::::req_headers请求头：》》》\n", cjson.encode(req_headers), "\n《《《")
--- ngx.log(ngx.ERR, "header_filter::::resp_headers响应头：》》》\n", cjson.encode(resp_headers), "\n《《《")
+-- ngx.log(ngx.ERR, "access_by_lua_file::请求头》》》\n", cjson.encode(req_headers), "\n《《《")
+-- ngx.log(ngx.ERR, "access_by_lua_file::响应头》》》\n", cjson.encode(resp_headers), "\n《《《")
 
 -- 替换请求参数，需在server或location中设置以下变量
 -- set $inHost "172.16.0.91"; # 内网IP
-if uri_args["service"] and ngx.var.inHost and ngx.var.inHost ~= nil then
+if uri_args["service"]
+    and ngx.var.inHost and ngx.var.inHost ~= nil
+    -- 判断响应Host是否为客户端访问Host
+    and not string.match(ngx.header.location, ngx.var.host)
+then
     -- 替换外网IP
-    local newstr, n, err = ngx.re.gsub(uri_args["service"], ngx.var.host, ngx.var.inHost, "i")
+    local newstr, n, err = ngx.re.gsub(uri_args["service"], ngx.var.http_host, ngx.var.inHost, "i")
     if newstr then
         -- 替换外网IP ngx.var.http_host
          uri_args["service"] = newstr
@@ -118,10 +122,12 @@ if uri_args["service"] and ngx.var.inHost and ngx.var.inHost ~= nil then
     ngx.req.set_uri_args(uri_args)
 end
 
--- if string.match(req_headers.host, ngx.var.host) and ngx.var.inHost and ngx.var.inHost ~= nil then
-    -- ngx.req.set_header("Host", string.gsub(req_headers.host, ngx.var.host, ngx.var.inHost))
-    -- ngx.req.set_header("X-Real-IP", "172.16.0.91")
-    -- ngx.var.remote_addr = "172.16.0.91"
+-- if ngx.var.inHost and ngx.var.inHost ~= nil
+    -- and string.match(req_headers.host, ngx.var.host)
+-- then
+    -- ngx.req.set_header("Host", string.gsub(req_headers.host, ngx.var.http_host, ngx.var.inHost))
+    -- ngx.req.set_header("X-Real-IP", ngx.var.inHost)
+    -- ngx.var.remote_addr = ngx.var.inHost
 -- end
 ```
 
@@ -134,21 +140,22 @@ end
 
 -- local req_headers = ngx.req.get_headers() -- 请求头
 local resp_headers = ngx.resp.get_headers() -- 响应头
+
 ngx.header.content_length = nil -- body_filter_by_lua*替换内容后需要置空内容长度
 
--- ngx.log(ngx.ERR, "header_filter_by_lua::::req_headers请求头：》》》\n", cjson.encode(req_headers), "\n《《《")
--- ngx.log(ngx.ERR, "header_filter_by_lua::::resp_headers响应头：》》》\n", cjson.encode(resp_headers), "\n《《《")
+-- ngx.log(ngx.ERR, "header_filter_by_lua::请求头》》》\n", cjson.encode(req_headers), "\n《《《")
+-- ngx.log(ngx.ERR, "header_filter_by_lua::响应头》》》\n", cjson.encode(resp_headers), "\n《《《")
 
 -- 替换返回响应头，需在server或location中设置以下变量
 -- set $inHost "172.16.0.91"; # 内网IP
 if ngx.header.location ~= nil
+    and ngx.var.inHost and ngx.var.inHost ~= nil
     -- 判断响应Host是否为客户端访问Host
     and not string.match(ngx.header.location, ngx.var.host)
-    and ngx.var.inHost and ngx.var.inHost ~= nil
 then
     -- 替换响应头中的外网IP
-    local newstr, n, err = ngx.re.gsub(resp_headers.location, ngx.var.inHost, ngx.var.host, "i")
-    -- ngx.log(ngx.ERR, "\n新字符: ", newstr, "\n老字符: ", resp_headers.location,"\n", ngx.var.host,"\n")
+    local newstr, n, err = ngx.re.gsub(resp_headers.location, ngx.var.inHost, ngx.var.http_host, "i")
+    -- ngx.log(ngx.ERR, "\n新字符: ", newstr, "\n老字符: ", resp_headers.location, "\n")
     if newstr then
          ngx.header['location'] = newstr
     else
@@ -162,9 +169,13 @@ then
     end
 end
 
-if resp_headers.refresh and ngx.var.inHost and ngx.var.inHost ~= nil then
-    local newstr, n, err = ngx.re.gsub(resp_headers.refresh, ngx.var.inHost, ngx.var.host, "i")
-    -- ngx.log(ngx.ERR, "\n新字符: ", newstr, "\n老字符: ", resp_headers.refresh,"\n", ngx.var.host,"\n")
+if resp_headers.refresh
+    and ngx.var.inHost and ngx.var.inHost ~= nil
+    -- 判断响应Host是否为客户端访问Host
+    and not string.match(resp_headers.refresh, ngx.var.host)
+then
+    local newstr, n, err = ngx.re.gsub(resp_headers.refresh, ngx.var.inHost, ngx.var.http_host, "i")
+    -- ngx.log(ngx.ERR, "\n新字符: ", newstr, "\n老字符: ", resp_headers.refresh, "\n")
     if newstr then
          ngx.header['refresh'] = newstr
     else
@@ -211,14 +222,14 @@ if eof then
     
     -- 内容有指定IP
     if whole
+        and ngx.var.inHost and ngx.var.inHost ~= nil
         -- 判断响应Host是否为客户端访问Host
         and not string.match(whole, ngx.var.host)
-        and ngx.var.inHost and ngx.var.inHost ~= nil
     then
-        -- ngx.log(ngx.ERR,"body_filter_by_lua::::响应内容：》》》\n", whole, "\n《《《")
+        -- ngx.log(ngx.ERR,"body_filter_by_lua::响应内容》》》\n", whole, "\n《《《")
         -- 替换外网IP，需在server或location中设置以下变量
         -- set $inHost "172.16.0.91"; # 内网IP
-        local newstr, n, err = ngx.re.gsub(whole, ngx.var.inHost, ngx.var.host, "i")
+        local newstr, n, err = ngx.re.gsub(whole, ngx.var.inHost, ngx.var.http_host, "i")
         if newstr then
             -- 替换外网IP，重新赋值响应数据，以修改后的内容作为最终响应
             whole = newstr
@@ -236,9 +247,9 @@ end
 
 ```conf
 #lua_code_cache off; # 编译代码缓存，建议只在开发环境使用，默认on
-access_by_lua_file /usr/local/openresty/access.lua;
-header_filter_by_lua_file /usr/local/openresty/header_filter.lua;
-body_filter_by_lua_file /usr/local/openresty/body_filter.lua;
+access_by_lua_file /usr/local/openresty/lua/access.lua;
+header_filter_by_lua_file /usr/local/openresty/lua/header_filter.lua;
+body_filter_by_lua_file /usr/local/openresty/lua/body_filter.lua;
 ```
 
 **通过命令`nginx`启动，或通过命令`nginx -s reload`重启NGINX，如果没有报错，至此所有配置已完成；**
