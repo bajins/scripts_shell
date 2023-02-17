@@ -55,54 +55,6 @@ If f = "" Or IsNull(f) Or Not InStr(1, f, ".war") > 1 Then
     Wscript.Quit
 End If
 
-Set fObj = fso.GetFile(f)
-Set fPf = fObj.ParentFolder
-fName = fObj.name
-oldFolder = Replace(fObj.path, ".war", "")
-
-If fso.folderExists(oldFolder) Then
-    MsgBox "文件夹" & oldFolder & "已经存在！", 48
-    Wscript.Quit
-End If
-
-unWar = oldFolder & "\" & fName
-' 创建文件夹
-fso.CreateFolder(oldFolder)
-' 复制文件
-fso.CopyFile f, unWar, True
-' 切换工作目录
-WshShell.CurrentDirectory = oldFolder
-envType = "user"
-LoadingDialog(envType)
-'创建用户变量
-set env = WshShell.environment(envType)
-' 解压WAR包
-resCode = WshShell.Run("jar -xvf " & unWar, 0, True)
-If resCode <> 0 Then
-    env("stat") = 0
-    MsgBox "WAR包解压错误！", 48
-    Wscript.Quit
-End If
-env("stat") = 0
-' 删除文件
-fso.DeleteFile(unWar)
-' WshShell.CurrentDirectory = fso.GetFolder(".").Path
-WshShell.CurrentDirectory = fso.GetFile(Wscript.ScriptFullName).ParentFolder.Path
-
-' On Error Resume Next ' 捕获异常
-
-tn = Now ' 当前时间
-With New RegExp
-    .Global = True
-    .MultiLine = True
-    .Pattern = "-|/|\s|:"
-    tn = .Replace(tn, "")
-End With
-<<<<<<< HEAD
-copyPath = oldFolder & "_" & tn & "_" & WshShell.ExpandEnvironmentStrings("%USERNAME%") ' 复制后的路径
-=======
-copyPath = oldFolder & "_" & tn ' 复制后的路径
->>>>>>> 2c7ef9b1c3aad978652e06d030f046447d7df931
 
 ' If Err <> 0 Then
     ' MsgBox "文件夹未正确选择！" & Err.Description, 48
@@ -132,6 +84,56 @@ With New RegExp
     .Pattern = vbCrLf & "|" & vbCr & "|" & vbLf
     s = .Replace(s, " ")
 End With
+
+
+' 处理war包
+Set fObj = fso.GetFile(f)
+Set fPf = fObj.ParentFolder
+fName = fObj.name
+oldFolder = Replace(fObj.path, ".war", "")
+
+If fso.folderExists(oldFolder) Then
+    MsgBox "文件夹" & oldFolder & "已经存在！", 48
+    Wscript.Quit
+End If
+
+unWar = oldFolder & "\" & fName
+' 创建文件夹
+fso.CreateFolder(oldFolder)
+' 复制文件
+fso.CopyFile f, unWar, True
+' 切换工作目录
+WshShell.CurrentDirectory = oldFolder
+
+envType = "user"
+LoadingDialog(envType) ' 解压提示弹窗
+'创建用户变量
+set env = WshShell.environment(envType)
+' 解压WAR包
+resCode = WshShell.Run("jar -xvf " & unWar, 0, True)
+If resCode <> 0 Then
+    env("stat") = 0
+    MsgBox "WAR包解压错误！", 48
+    Wscript.Quit
+End If
+env("stat") = 0
+' 删除文件
+fso.DeleteFile(unWar)
+' WshShell.CurrentDirectory = fso.GetFolder(".").Path
+WshShell.CurrentDirectory = fso.GetFile(Wscript.ScriptFullName).ParentFolder.Path
+
+' On Error Resume Next ' 捕获异常
+
+tn = Now ' 当前时间
+With New RegExp
+    .Global = True
+    .MultiLine = True
+    .Pattern = "-|/|\s|:"
+    tn = .Replace(tn, "")
+End With
+copyPath = oldFolder & "_" & tn & "_" & WshShell.ExpandEnvironmentStrings("%USERNAME%") ' 复制后的路径
+
+
 
 ' https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/robocopy
 resCode = WshShell.Run("robocopy /ndl /njh /njs /s """ & oldFolder & """ """ & copyPath & """ " & s, 0, True)
