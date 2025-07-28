@@ -11,10 +11,10 @@ local uri_args = ngx.req.get_uri_args()
 
 -- 替换请求参数，需在server或location中设置以下变量
 -- set $inHost "172.16.0.91"; # 内网IP
-if uri_args["service"]
+if uri_args["service"] and uri_args["service"] ~= nil
     and ngx.var.inHost and ngx.var.inHost ~= nil
-    -- 判断响应Host是否为客户端访问Host
-    and not string.match(ngx.header.location, ngx.var.host)
+    -- 判断响应Host是否为内网访问Host
+    and not string.match(uri_args["service"], ngx.var.inHost)
 then
     -- 替换外网IP
     local newstr, n, err = ngx.re.gsub(uri_args["service"], ngx.var.http_host, ngx.var.inHost, "i")

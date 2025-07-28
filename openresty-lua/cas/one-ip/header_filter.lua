@@ -11,14 +11,18 @@ ngx.header.content_length = nil -- body_filter_by_lua*替换内容后需要置�
 
 -- 替换返回响应头，需在server或location中设置以下变量
 -- set $inHost "172.16.0.91"; # 内网IP
-if ngx.header.location ~= nil
+if ngx.header.location and ngx.header.location ~= nil
     and ngx.var.inHost and ngx.var.inHost ~= nil
     -- 判断响应Host是否为客户端访问Host
-    and not string.match(ngx.header.location, ngx.var.host)
+    and not string.match(ngx.header.location, ngx.var.http_host)
 then
     -- 替换响应头中的外网IP
     local newstr, n, err = ngx.re.gsub(resp_headers.location, ngx.var.inHost, ngx.var.http_host, "i")
     -- ngx.log(ngx.ERR, "\n新字符: ", newstr, "\n老字符: ", resp_headers.location,"\n", ngx.var.http_host,"\n")
+    if not string.match(newstr, ngx.var.http_host) then -- 考虑可能IP不为内网IP，但是没有带上外网端口
+        newstr, n, err = ngx.re.gsub(newstr, ngx.var.host.."/", ngx.var.http_host.."/", "i")
+        -- ngx.log(ngx.ERR, "header_filter_by_lua::::resp_headers响应头：》》》\n", newstr, "\n《《《")
+    end
     if newstr then
          ngx.header['location'] = newstr
     else
@@ -32,10 +36,10 @@ then
     end
 end
 
-if resp_headers.refresh
+if resp_headers.refresh and resp_headers.refresh ~= nil
     and ngx.var.inHost and ngx.var.inHost ~= nil
     -- 判断响应Host是否为客户端访问Host
-    and not string.match(resp_headers.refresh, ngx.var.host)
+    and not string.match(resp_headers.refresh, ngx.var.http_host)
 then
     local newstr, n, err = ngx.re.gsub(resp_headers.refresh, ngx.var.inHost, ngx.var.http_host, "i")
     -- ngx.log(ngx.ERR, "\n新字符: ", newstr, "\n老字符: ", resp_headers.refresh,"\n", ngx.var.http_host,"\n")
